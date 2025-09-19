@@ -44,9 +44,9 @@ const Solution = () => {
           title="Privacy-First Architecture"
           subtext="Your meeting data stays under your control with open-source, self-hostable infrastructure"
         />
-        <div className="flex flex-col items-center max-w-[600px] bg-black py-8 rounded-2xl border border-gray-800 shadow-[0_0_20px_rgba(96,165,250,0.3)]">
+        <div className="flex flex-col items-center max-w-[600px] bg-black py-8 rounded-2xl border border-gray-800">
           <div className="py-6 w-full px-6">
-            <div className="w-full h-[400px] bg-gray-900/80 rounded-xl overflow-hidden border border-gray-700/50 shadow-2xl">
+            <div className="w-full h-[400px] bg-gray-900/80 rounded-xl overflow-hidden border border-gray-700/50">
               <div className="@container flex flex-1 items-center justify-center h-full max-lg:py-6 lg:pb-2">
                 <img
                   alt=""
@@ -66,9 +66,9 @@ const Solution = () => {
             </p>
           </div>
         </div>
-        <div className="flex flex-col items-center max-w-[600px] bg-black py-8 rounded-2xl border border-gray-800 shadow-[0_0_20px_rgba(96,165,250,0.3)]">
+        <div className="flex flex-col items-center max-w-[600px] bg-black py-8 rounded-2xl border border-gray-800">
           <div className="py-6 w-full px-6">
-            <div className="w-full h-[400px] bg-gray-900/80 rounded-xl overflow-hidden border border-gray-700/50 shadow-2xl">
+            <div className="w-full h-[400px] bg-gray-900/80 rounded-xl overflow-hidden border border-gray-700/50">
               {/* Terminal Header */}
               <div className="flex items-center justify-between bg-gradient-to-r from-gray-700 to-gray-600 px-4 py-3 border-b border-gray-700/50">
                 <div className="flex items-center space-x-2">
