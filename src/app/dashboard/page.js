@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -8,14 +8,105 @@ import ravenlogo from '@/app/asset/svg/ravenlogo.svg';
 import background from '@/app/asset/svg/ray-background.svg';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import StartMeetingModal from '@/components/StartMeetingModal';
+import RealtimeTranscript from '@/components/RealtimeTranscript';
+import ApiConfigModal from '@/components/ApiConfigModal';
+import MeetingHistory from '@/components/MeetingHistory';
+import { startMeetingBot, stopMeetingBot, getMeetingHistory } from '@/lib/vexa-api-service';
 
 const Dashboard = () => {
   const { user, signOut, loading } = useAuth();
   const router = useRouter();
+  
+  // Meeting management state
+  const [showMeetingModal, setShowMeetingModal] = useState(false);
+  const [showApiConfigModal, setShowApiConfigModal] = useState(false);
+  const [activeMeeting, setActiveMeeting] = useState(null);
+  const [error, setError] = useState('');
 
   const handleSignOut = async () => {
     await signOut();
     router.push('/');
+  };
+
+
+  // Handle starting a new meeting
+  const handleStartMeeting = async (meetingData) => {
+    try {
+      setError('');
+      const result = await startMeetingBot(meetingData);
+      
+      // Set up active meeting state
+      setActiveMeeting({
+        id: result.meetingId,
+        platform: meetingData.platform,
+        description: meetingData.description,
+        startTime: new Date().toISOString(),
+        status: 'active'
+      });
+      
+      setShowMeetingModal(false);
+      
+    } catch (err) {
+      console.error('Failed to start meeting:', err);
+      throw err; // Re-throw to be handled by the modal
+    }
+  };
+
+  // Handle stopping the active meeting
+  const handleStopMeeting = async () => {
+    if (!activeMeeting) return;
+    
+    try {
+      await stopMeetingBot(activeMeeting?.id);
+      setActiveMeeting(null);
+      
+    } catch (err) {
+      console.error('Failed to stop meeting:', err);
+      setError('Failed to stop meeting: ' + err.message);
+    }
+  };
+
+  // Handle transcript errors
+  const handleTranscriptError = (err) => {
+    console.error('Transcript error:', err);
+    setError('Transcript error: ' + err.message);
+  };
+
+  const handleViewMeeting = (meetingId) => {
+    // Set the meeting as active to view its transcript
+    if (!meetingId || typeof meetingId !== 'string') {
+      console.error('Invalid meetingId:', meetingId, 'Type:', typeof meetingId);
+      return;
+    }
+    
+    const parts = meetingId.split('/');
+    const [platform, nativeId, meetingDbId] = parts;
+    
+    setActiveMeeting({ 
+      id: `${platform}/${nativeId}`, // Use the format expected by the API
+      platform: platform,
+      nativeId: nativeId,
+      meetingDbId: meetingDbId
+    });
+  };
+
+  const handleResumeMeeting = (meetingId) => {
+    // Resume an active meeting
+    if (!meetingId || typeof meetingId !== 'string') {
+      console.error('Invalid meetingId:', meetingId);
+      return;
+    }
+    
+    const parts = meetingId.split('/');
+    const [platform, nativeId, meetingDbId] = parts;
+    
+    setActiveMeeting({ 
+      id: `${platform}/${nativeId}`, // Use the format expected by the API
+      platform: platform,
+      nativeId: nativeId,
+      meetingDbId: meetingDbId
+    });
   };
 
   // Redirect to auth page if user is not authenticated
@@ -86,7 +177,35 @@ const Dashboard = () => {
 
           {/* Dashboard Content */}
           <main className="flex-1 overflow-auto">
-            <div className="p-4 lg:p-8 max-w-7xl mx-auto">
+            {activeMeeting ? (
+              /* Active Meeting View */
+              <div className="h-full p-4 lg:p-6">
+                <div className="mb-4">
+                  <h2 className="text-xl font-semibold text-white mb-2">
+                    Active Meeting Transcription
+                  </h2>
+                  <p className="text-zinc-400 text-sm">
+                    {activeMeeting?.description || `Meeting on ${(activeMeeting?.platform || 'unknown').replace('_', ' ').toUpperCase()}`}
+                  </p>
+                </div>
+                
+                {error && (
+                  <div className="mb-4 p-3 bg-red-900/20 border border-red-900/30 rounded-lg">
+                    <p className="text-red-400 text-sm">{error}</p>
+                  </div>
+                )}
+                
+                <div className="h-[calc(100vh-16rem)]">
+                  <RealtimeTranscript
+                    meetingId={activeMeeting?.id}
+                    onStop={handleStopMeeting}
+                    onError={handleTranscriptError}
+                  />
+                </div>
+              </div>
+            ) : (
+              /* Dashboard Home View */
+              <div className="p-4 lg:p-8 max-w-7xl mx-auto">
               {/* Welcome Section */}
               <div className="text-center mb-8 lg:mb-12">
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-white mb-4">
@@ -97,6 +216,13 @@ const Dashboard = () => {
                 </p>
               </div>
 
+              {/* Error Display */}
+              {error && (
+                <div className="mb-6 p-4 bg-red-900/20 border border-red-900/30 rounded-lg">
+                  <p className="text-red-400 text-sm">{error}</p>
+                </div>
+              )}
+
               {/* Quick Actions Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-8 lg:mb-12">
                 {/* Start New Meeting */}
@@ -105,7 +231,10 @@ const Dashboard = () => {
                   <p className="text-zinc-400 mb-4 text-sm leading-relaxed">
                     Begin transcribing your next meeting with AI-powered note-taking.
                   </p>
-                  <button className="w-full py-3 px-4 bg-white text-black font-medium rounded-lg hover:bg-zinc-100 transition-colors text-sm">
+                  <button 
+                    onClick={() => setShowMeetingModal(true)}
+                    className="w-full py-3 px-4 bg-white text-black font-medium rounded-lg hover:bg-zinc-100 transition-colors text-sm"
+                  >
                     Start Meeting
                   </button>
                 </div>
@@ -127,30 +256,40 @@ const Dashboard = () => {
                   <p className="text-zinc-400 mb-4 text-sm leading-relaxed">
                     Configure your preferences and API integrations.
                   </p>
-                  <button className="w-full py-3 px-4 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors text-sm">
+                  <button 
+                    onClick={() => setShowApiConfigModal(true)}
+                    className="w-full py-3 px-4 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors text-sm"
+                  >
                     Open Settings
                   </button>
                 </div>
               </div>
 
-              {/* Recent Activity */}
+              {/* Meeting History */}
               <div className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-6 border border-zinc-800">
-                <h3 className="text-lg font-semibold text-white mb-4">Recent Activity</h3>
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                  </div>
-                  <p className="text-zinc-400 mb-2 text-base">No meetings yet</p>
-                  <p className="text-sm text-zinc-500">
-                    Start your first meeting to see transcription history here.
-                  </p>
-                </div>
+                <MeetingHistory 
+                  onViewMeeting={handleViewMeeting}
+                  onResumeMeeting={handleResumeMeeting}
+                />
               </div>
             </div>
+            )}
           </main>
         </SidebarInset>
+        
+        {/* Meeting Modal */}
+        <StartMeetingModal
+          isOpen={showMeetingModal}
+          onClose={() => setShowMeetingModal(false)}
+          onStartMeeting={handleStartMeeting}
+        />
+        
+        {/* API Configuration Modal */}
+        <ApiConfigModal
+          isOpen={showApiConfigModal}
+          onClose={() => setShowApiConfigModal(false)}
+        />
+        
       </div>
     </SidebarProvider>
   );

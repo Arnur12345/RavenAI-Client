@@ -22,14 +22,26 @@ export const AuthProvider = ({ children }) => {
     // Get initial session
     const getInitialSession = async () => {
       try {
+        console.log('AuthContext: Getting initial session...')
         const { user, error } = await customAuth.getCurrentUser()
+        console.log('AuthContext: Initial session result:', { user: !!user, error })
+        
         if (error) {
+          console.log('AuthContext: Error getting user:', error)
           setError(error)
-        } else {
+          setUser(null)
+        } else if (user) {
+          console.log('AuthContext: User found:', user.email)
           setUser(user)
+          setError(null)
+        } else {
+          console.log('AuthContext: No user found')
+          setUser(null)
         }
       } catch (err) {
+        console.error('AuthContext: Exception getting initial session:', err)
         setError(err.message)
+        setUser(null)
       } finally {
         setLoading(false)
       }
@@ -39,19 +51,32 @@ export const AuthProvider = ({ children }) => {
 
     // Listen for storage changes (for multi-tab support)
     const handleStorageChange = (e) => {
-      if (e.key === 'ravenai_token') {
-        if (e.newValue) {
+      if (e.key === 'ravenai_token' || e.key === 'ravenai_user') {
+        console.log('AuthContext: Storage changed:', { key: e.key, hasNewValue: !!e.newValue })
+        if (e.key === 'ravenai_token' && e.newValue) {
           // Token was added, verify it
           customAuth.getCurrentUser().then(({ user, error }) => {
             if (error) {
+              console.log('AuthContext: Token verification failed:', error)
               setUser(null)
             } else {
+              console.log('AuthContext: Token verified, user:', user?.email)
               setUser(user)
             }
           })
-        } else {
+        } else if (e.key === 'ravenai_token' && !e.newValue) {
           // Token was removed
+          console.log('AuthContext: Token removed, logging out')
           setUser(null)
+        } else if (e.key === 'ravenai_user' && e.newValue) {
+          // User data was updated
+          try {
+            const user = JSON.parse(e.newValue)
+            console.log('AuthContext: User data updated:', user.email)
+            setUser(user)
+          } catch (error) {
+            console.log('AuthContext: Failed to parse user data')
+          }
         }
       }
     }
