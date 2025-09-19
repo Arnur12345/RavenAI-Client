@@ -1,4 +1,7 @@
+'use client';
+
 import React from "react";
+import { useRouter } from "next/navigation";
 import Button from "../../components/Button";
 import Image from "next/image";
 import icon from "@/app/asset/svg/heroicon.svg";
@@ -8,6 +11,12 @@ import leftWave from "@/app/asset/svg/wave.svg";
 import vector from "@/app/asset/svg/vector.svg";
 
 const Hero = () => {
+  const router = useRouter();
+
+  const handleLetRavenCook = () => {
+    router.push('/auth');
+  };
+
   return (
     <section className="hero container mx-auto relative flex flex-col items-center text-center w-full lg:mb-8 px-4">
       {/* soft radial glow background */}
@@ -49,6 +58,7 @@ const Hero = () => {
 
         <Button
           size="large"
+          clickHandler={handleLetRavenCook}
           className="!bg-[linear-gradient(180deg,#1F2937,#0B0F14)] !text-white !border !border-white/10 hover:!border-white/20 shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_10px_40px_rgba(0,0,0,0.55)] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.10),0_12px_48px_rgba(0,0,0,0.6)]"
         >
           <span className="inline-flex items-center gap-2">

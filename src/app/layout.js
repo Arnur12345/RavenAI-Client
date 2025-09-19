@@ -1,5 +1,6 @@
 import { Figtree, Geist_Mono, Pacifico, EB_Garamond } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const figtreeSans = Figtree({
   variable: "--font-figtree",
@@ -20,8 +21,8 @@ const ebGaramond = EB_Garamond({
 });
 
 export const metadata = {
-  title: "Dashify —– Next.js Template",
-  description: "Designed and developed by DesignOrah",
+  title: "RavenAI — Transform your meetings into actionable tasks",
+  description: "AI-powered meeting transcription and note-taking. Fully open-source. Powered by AI.",
 };
 
 export default function RootLayout({ children }) {
@@ -30,7 +31,9 @@ export default function RootLayout({ children }) {
       <body
         className={`${figtreeSans.variable} ${pacificoHand.variable} ${ebGaramond.variable} antialiased bg-black`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

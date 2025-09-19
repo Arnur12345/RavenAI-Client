@@ -1,11 +1,20 @@
+'use client';
+
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import ravenlogo from "@/app/asset/svg/ravenlogo.svg";
 import Nav from "../Nav";
 import Button from "../Button";
 
 const Header = () => {
+  const router = useRouter();
+
+  const handleGetStarted = () => {
+    router.push('/auth');
+  };
+
   return (
     <div className="container mx-auto mt-[33px] mb-[50px] relative flex flex-col justify-center max-w-5xl">
       <header className="relative">
@@ -37,7 +46,7 @@ const Header = () => {
           <Nav />
 
           <div className="hidden lg:block">
-            <Button>Get Started</Button>
+            <Button clickHandler={handleGetStarted}>Get Started</Button>
           </div>
         </div>
       </header>

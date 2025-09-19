@@ -3,14 +3,21 @@ import React, { useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import menu from "@/app/asset/svg/menu.svg";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import Button from "../Button";
 import Link from "next/link";
 
 const Nav = () => {
   const [isMenuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
 
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);
+  };
+
+  const handleGetStarted = () => {
+    router.push('/auth');
+    setMenuOpen(false); // Close mobile menu after navigation
   };
 
   return (
@@ -64,7 +71,7 @@ const Nav = () => {
               </li>
             </ul>
             <div className="block lg:hidden mt-6">
-              <Button>Get Started</Button>
+              <Button clickHandler={handleGetStarted}>Get Started</Button>
             </div>
           </div>
         </div>
