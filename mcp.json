@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "fastapi-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://api.cloud.vexa.ai/mcp",
+        "--header",
+        "Authorization:${VEXA_API_KEY}"
+      ],
+      "env": {
+        "VEXA_API_KEY": "YOUR_API_KEY_HERE"
+      }
+    }
+  }
+}
