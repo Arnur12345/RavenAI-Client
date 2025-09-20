@@ -277,3 +277,4 @@ export function convertWebSocketSegment(segment, meetingId) {
     speaker: segment.speaker || "Unknown",
   }
 }
+

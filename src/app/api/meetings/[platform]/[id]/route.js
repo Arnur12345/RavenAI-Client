@@ -14,7 +14,7 @@ export async function DELETE(request, { params }) {
       )
     }
 
-    const response = await fetch(`${apiBaseUrl}/meetings/${platform}/${id}`, {
+    const response = await fetch(`${apiBaseUrl}/bots/${platform}/${id}`, {
       method: 'DELETE',
       headers: {
         'X-API-Key': apiKey,

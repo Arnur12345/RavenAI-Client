@@ -1,5 +1,8 @@
+'use client'
+
 import * as React from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 import {
   Sidebar,
@@ -24,7 +27,6 @@ const data = {
         {
           title: "Overview",
           url: "/dashboard",
-          isActive: true,
         },
         {
           title: "Recent Meetings",
@@ -98,6 +100,8 @@ const data = {
 }
 
 export function AppSidebar({ ...props }) {
+  const pathname = usePathname()
+
   return (
     <Sidebar {...props} className="border-r border-zinc-800">
       <SidebarHeader className="border-b border-zinc-800">
@@ -115,19 +119,22 @@ export function AppSidebar({ ...props }) {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
-                {item.items.map((subItem) => (
-                  <SidebarMenuItem key={subItem.title}>
-                    <SidebarMenuButton 
-                      asChild 
-                      isActive={subItem.isActive}
-                      className="w-full justify-start text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors px-3 py-2"
-                    >
-                      <Link href={subItem.url} className="flex items-center gap-3 w-full">
-                        <span className="truncate">{subItem.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {item.items.map((subItem) => {
+                  const isActive = pathname === subItem.url
+                  return (
+                    <SidebarMenuItem key={subItem.title}>
+                      <SidebarMenuButton 
+                        asChild 
+                        isActive={isActive}
+                        className="w-full justify-start text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors px-3 py-2"
+                      >
+                        <Link href={subItem.url} className="flex items-center gap-3 w-full">
+                          <span className="truncate">{subItem.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
